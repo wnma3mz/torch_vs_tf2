@@ -23,6 +23,18 @@ if __name__ == "__main__":
     model_seq = cnn_seq.build()
     trainer = TrainerSeq(model_seq, optimizer=optimizer, criterion=criterion)
 
+    # 模型可视化
+    # tf.keras.utils.plot_model(
+    #     model,
+    #     to_file='model.png',
+    #     show_shapes=True,
+    #     show_layer_names=True,
+    #     rankdir='TB',
+    #     expand_nested=True,
+    #     dpi=96
+    # )
+
+    
     s1 = time.time()
     # 训练并验证模型
     trainer.train(trainloader, epochs=5)
