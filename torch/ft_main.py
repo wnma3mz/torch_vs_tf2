@@ -51,21 +51,28 @@ if __name__ == "__main__":
     # assert 1==2
 
     # model = vit_b_16(weights=ViT_B_16_Weights.IMAGENET1K_V1)
-    # model = imprint(trainloader, model, num_class, "cuda:0", False, 768)
-    
+    # feat_num = model.hidden_dim
+    # model.heads = nn.Identity()
+    # weight = imprint(trainloader, model, num_class, "cuda:0", False, feat_num)
+    # model.heads = nn.Linear(feat_num, num_class, bias=False)
+    # model.heads.weight.data = weight
+
     # model = resnet18(weights=ResNet18_Weights.DEFAULT)
     # model = resnet34(weights=ResNet34_Weights.DEFAULT)
     model = resnet152(weights=ResNet152_Weights.DEFAULT)
-    model.fc.out_features = num_class
-    # model = imprint(trainloader, model, num_class, "cuda:0", False, model.fc.in_features)
+    feat_num = model.fc.in_features
+    model.fc = nn.Identity()
+    weight = imprint(trainloader, model, num_class, "cuda:0", False, feat_num)
+    model.fc = nn.Linear(feat_num, num_class, bias=False)
+    model.fc.weight.data = weight
+
     # model.fc = Proj(model.fc.in_features, 10)
-    
     # model.fc = HadamardProj(model.fc.in_features, 10)
     # model.fc.out_features = 10
 
     # model.fc = nn.Identity()
     for name, params in model.named_parameters():
-        if "fc" not in name:
+        if all(x in name for x in ["fc", "heads"]):
             params.requires_grad = False
 
     # optimizer = optim.Adam(model.parameters(), lr=1e-2)    

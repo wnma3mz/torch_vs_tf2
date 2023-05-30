@@ -43,7 +43,6 @@ def imprint(novel_loader, model, num_classes, device, is_random, embedding_size)
     # Switch to evaluate mode
     model.to(device)
     model.eval()
-    model.fc = nn.Identity()
 
     with torch.no_grad():
         for batch_idx, (img, lbl) in tqdm(enumerate(novel_loader)):
@@ -72,7 +71,7 @@ def imprint(novel_loader, model, num_classes, device, is_random, embedding_size)
         new_weight[i] = tmp / tmp.norm(p=2)
 
     # weight = torch.cat((model.classifier.fc.weight.data, new_weight.cuda()))
-
+    return new_weight
     model.fc = nn.Linear(embedding_size, num_classes, bias=False)
     model.fc.weight.data = new_weight
     # model.fc.weight.data = weight_norm(new_weight)
