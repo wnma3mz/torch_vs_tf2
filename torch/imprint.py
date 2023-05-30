@@ -2,7 +2,7 @@
 # url: https://github.com/YU1ut/imprinted-weights/blob/HEAD/imprint_ft.py
 import torch
 import torch.nn as nn
-
+from tqdm import tqdm
 
 def l2_norm(input):
     input_size = input.size()
@@ -46,14 +46,13 @@ def imprint(novel_loader, model, num_classes, device, is_random, embedding_size)
     model.fc = nn.Identity()
 
     with torch.no_grad():
-        for batch_idx, (img, lbl) in enumerate(novel_loader):
+        for batch_idx, (img, lbl) in tqdm(enumerate(novel_loader)):
             img = img.to(device)
             lbl = lbl.float().to(device)
 
             # compute output
             output = model(img)
-
-            # output = l2_norm(output) # lose embeding function (nn.Linear)
+            output = l2_norm(output) # lose embeding function (nn.Linear)
 
             if batch_idx == 0:
                 output_stack = output
@@ -76,6 +75,7 @@ def imprint(novel_loader, model, num_classes, device, is_random, embedding_size)
 
     model.fc = nn.Linear(embedding_size, num_classes, bias=False)
     model.fc.weight.data = new_weight
+    # model.fc.weight.data = weight_norm(new_weight)
 
     return model
 

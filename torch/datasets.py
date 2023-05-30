@@ -22,7 +22,21 @@ class FewCIFAR10(CIFAR10):
             self.data, self.targets = few_data, few_targets
 
 
-def get_datasets(dataset_name, dataset_dir, split=None, download=False):
+class FewCIFAR100(CIFAR100):
+    def __init__(self, root: str, train: bool = True, transform: Callable[..., Any] | None = None, target_transform: Callable[..., Any] | None = None, download: bool = False) -> None:
+        super().__init__(root, train, transform, target_transform, download)
+        if self.train:
+            max_cnt = 5
+            class_cnt = {k: 0 for k in set(self.targets)}
+            few_data, few_targets = [], []
+            for img, target in zip(self.data, self.targets):
+                if class_cnt[target] < max_cnt:
+                    few_data.append(img)
+                    few_targets.append(target)
+                    class_cnt[target] += 1
+            self.data, self.targets = few_data, few_targets
+
+def get_datasets(dataset_name, dataset_dir, split=None, download=True):
     trans_mnist = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
     )
@@ -41,13 +55,14 @@ def get_datasets(dataset_name, dataset_dir, split=None, download=False):
     )
     trans_cifar_train = transforms.Compose(
         [
-            transforms.RandomCrop(32, padding=4),
+            # transforms.RandomCrop(32, padding=4),
+            transforms.Resize(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             trains_cifar10,
         ]
     )
-    trans_cifar_test = transforms.Compose([transforms.ToTensor(), trains_cifar10])
+    trans_cifar_test = transforms.Compose([transforms.Resize(224), transforms.ToTensor(), trains_cifar10])
 
     if dataset_name == "mnist":
         trainset = MNIST(dataset_dir, train=True, download=download, transform=trans_mnist)
@@ -73,6 +88,13 @@ def get_datasets(dataset_name, dataset_dir, split=None, download=False):
         testset = CIFAR100(
             dataset_dir, train=False, download=download, transform=trans_cifar_test
         )
+    elif dataset_name == "few_cifar100":
+        trainset = FewCIFAR100(
+            dataset_dir, train=True, download=download, transform=trans_cifar_train
+        )
+        testset = FewCIFAR100(
+            dataset_dir, train=False, download=download, transform=trans_cifar_test
+        )        
     elif dataset_name == "emnist":
         trainset = EMNIST(
             dataset_dir, train=True, download=download, split=split, transform=trans_emnist
