@@ -56,24 +56,25 @@ if __name__ == "__main__":
     # weight = imprint(trainloader, model, num_class, "cuda:0", False, feat_num)
     # model.heads = nn.Linear(feat_num, num_class, bias=False)
     # model.heads.weight.data = weight
+    # model.heads = Proj(model.hidden_dim, 10)
 
-    # model = resnet18(weights=ResNet18_Weights.DEFAULT)
+
+    # model = resnet18()
+    model = resnet18(weights=ResNet18_Weights.DEFAULT)
     # model = resnet34(weights=ResNet34_Weights.DEFAULT)
-    model = resnet152(weights=ResNet152_Weights.DEFAULT)
+    # model = resnet152(weights=ResNet152_Weights.DEFAULT)
     feat_num = model.fc.in_features
     model.fc = nn.Identity()
     weight = imprint(trainloader, model, num_class, "cuda:0", False, feat_num)
     model.fc = nn.Linear(feat_num, num_class, bias=False)
     model.fc.weight.data = weight
-
     # model.fc = Proj(model.fc.in_features, 10)
     # model.fc = HadamardProj(model.fc.in_features, 10)
     # model.fc.out_features = 10
 
-    # model.fc = nn.Identity()
-    for name, params in model.named_parameters():
-        if all(x in name for x in ["fc", "heads"]):
-            params.requires_grad = False
+    # for name, params in model.named_parameters():
+    #     if any(x in name for x in ["fc", "heads"]):
+    #         params.requires_grad = False
 
     # optimizer = optim.Adam(model.parameters(), lr=1e-2)    
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-3)
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     print("测试耗时: {}".format(e2 - s2), loss, accuracy)
 
     # s1 = time.time()
-    # loss, accuracy = trainer.train(trainloader, epochs=10)
+    # loss, accuracy = trainer.train(trainloader, epochs=20)
     # e1 = time.time()
     # print("训练耗时: {}".format(e1 - s1), loss, accuracy)
 
